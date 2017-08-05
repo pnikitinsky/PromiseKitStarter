@@ -87,7 +87,7 @@ extension UIViewController {
                     vc.presentingViewController?.dismiss(animated: animationOptions.contains(.disappear), completion: nil)
             }
         }
-        
+
         return wrappingPromise
     }
 

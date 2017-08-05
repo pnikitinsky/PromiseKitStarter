@@ -27,11 +27,11 @@ extension CLLocationManager {
         case whenInUse
     }
 
-    fileprivate class func promiseDoneForLocationManager(_ manager: CLLocationManager) -> Void {
+    fileprivate class func promiseDoneForLocationManager(_ manager: CLLocationManager) {
         manager.delegate = nil
         manager.stopUpdatingLocation()
     }
-  
+
     /**
       - Returns: A new promise that fulfills with the most recent CLLocation.
       - Note: To return all locations call `allResults()`. 
@@ -60,7 +60,7 @@ private class LocationManager: CLLocationManager, CLLocationManagerDelegate {
     let (promise, fulfill, reject) = LocationPromise.foo()
 
     @objc fileprivate func locationManager(_ manager: CLLocationManager, didUpdateLocations ll: [CLLocation]) {
-        let locations = ll 
+        let locations = ll
         fulfill(locations)
         CLLocationManager.promiseDoneForLocationManager(manager)
     }
@@ -75,7 +75,6 @@ private class LocationManager: CLLocationManager, CLLocationManagerDelegate {
         }
     }
 }
-
 
 #if os(iOS)
 
@@ -97,7 +96,7 @@ private class AuthorizationCatcher: CLLocationManager, CLLocationManagerDelegate
     let (promise, fulfill, _) = Promise<CLAuthorizationStatus>.pending()
     var retainCycle: AnyObject?
 
-    init(auther: (CLLocationManager)->()) {
+    init(auther: (CLLocationManager)->Void) {
         super.init()
         let status = CLLocationManager.authorizationStatus()
         if status == .notDetermined {
@@ -154,7 +153,6 @@ private func auther(_ requestAuthorizationType: CLLocationManager.RequestAuthori
 }
 
 #endif
-
 
 /// The promise returned by CLLocationManager.promise()
 public class LocationPromise: Promise<CLLocation> {

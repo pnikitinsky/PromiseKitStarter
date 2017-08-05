@@ -80,7 +80,7 @@ public class URLDataPromise: Promise<Data> {
                 reject(URLError.badResponse(request, data, rsp))
             }
         }
-        
+
         return promise
     }
 }
@@ -113,6 +113,6 @@ extension URLResponse {
 
 extension Data {
     fileprivate var b0rkedEmptyRailsResponse: Bool {
-        return count == 1 && withUnsafeBytes{ $0[0] == " " }
+        return count == 1 && withUnsafeBytes { $0[0] == " " }
     }
 }

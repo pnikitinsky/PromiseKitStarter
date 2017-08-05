@@ -20,17 +20,27 @@
  * THE SOFTWARE.
  */
 
-
 import Foundation
 import CoreLocation
 import PromiseKit
 
-
-class LocationHelper  {
+class LocationHelper {
   let coder = CLGeocoder()
-  
-  func getLocation() -> Promise<CLPlacemark> {
-    return BrokenPromise()
-  }
-  
+
+//  func getLocation() -> Promise<CLPlacemark> {
+//    return BrokenPromise()
+//  }
+
+    func getLocation() -> Promise<CLPlacemark> {
+        // 1
+        return CLLocationManager.promise().then { location in
+
+            // 2
+            return self.coder.reverseGeocode(location: location)
+        }
+    }
+
+    func searchForPlacemark(text: String) -> Promise<CLPlacemark> {
+        return CLGeocoder().geocode(text)
+    }
 }

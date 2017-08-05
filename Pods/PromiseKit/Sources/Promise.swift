@@ -2,7 +2,6 @@ import class Dispatch.DispatchQueue
 import class Foundation.NSError
 import func Foundation.NSLog
 
-
 /**
  A *promise* represents the future value of a (usually) asynchronous task.
 
@@ -269,7 +268,7 @@ open class Promise<T> {
      */
     public func always(on q: DispatchQueue = .default,
                        execute body: @escaping () -> Void) -> Promise {
-        state.always(on: q) {_ in 
+        state.always(on: q) {_ in
             body()
         }
         return self
@@ -304,7 +303,7 @@ open class Promise<T> {
         return then(on: zalgo) { _ in return }
     }
 
-//MARK: deprecations
+// MARK: deprecations
 
     @available(*, unavailable, renamed: "always()")
     public func finally(on: DispatchQueue = DispatchQueue.main, execute body: () -> Void) -> Promise { fatalError() }
@@ -333,7 +332,7 @@ open class Promise<T> {
     @available(*, unavailable, renamed: "catch")
     public func report(policy: CatchPolicy = .allErrors, execute body: (Error) -> Void) { fatalError() }
 
-//MARK: disallow `Promise<Error>`
+// MARK: disallow `Promise<Error>`
 
     @available(*, unavailable, message: "cannot instantiate Promise<Error>")
     public init<T: Error>(resolvers: (_ fulfill: (T) -> Void, _ reject: (Error) -> Void) throws -> Void) { fatalError() }
@@ -341,7 +340,7 @@ open class Promise<T> {
     @available(*, unavailable, message: "cannot instantiate Promise<Error>")
     public class func pending<T: Error>() -> (promise: Promise, fulfill: (T) -> Void, reject: (Error) -> Void) { fatalError() }
 
-//MARK: disallow returning `Error`
+// MARK: disallow returning `Error`
 
     @available (*, unavailable, message: "instead of returning the error; throw")
     public func then<U: Error>(on: DispatchQueue = .default, execute body: (T) throws -> U) -> Promise<U> { fatalError() }
@@ -349,7 +348,7 @@ open class Promise<T> {
     @available (*, unavailable, message: "instead of returning the error; throw")
     public func recover<T: Error>(on: DispatchQueue = .default, execute body: (Error) throws -> T) -> Promise { fatalError() }
 
-//MARK: disallow returning `Promise?`
+// MARK: disallow returning `Promise?`
 
     @available(*, unavailable, message: "unwrap the promise")
     public func then<U>(on: DispatchQueue = .default, execute body: (T) throws -> Promise<U>?) -> Promise<U> { fatalError() }
@@ -404,7 +403,6 @@ public func dispatch_promise<T>(_ on: DispatchQueue, _ body: @escaping () throws
     return Promise(value: ()).then(on: on, execute: body)
 }
 
-
 /**
  The underlying resolved state of a promise.
  - remark: Same as `Resolution<T>` but without the associated `ErrorConsumptionToken`.
@@ -424,7 +422,6 @@ public enum Result<T> {
         }
     }
 }
-
 
 public class PMKJoint<T> {
     fileprivate var resolve: ((Resolution<T>) -> Void)!

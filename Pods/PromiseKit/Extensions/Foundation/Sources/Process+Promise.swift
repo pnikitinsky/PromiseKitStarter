@@ -102,7 +102,7 @@ final public class ProcessPromise: Promise<Void> {
     fileprivate var task: Process!
 
     fileprivate var stdout: Data {
-        
+
         return (task.standardOutput! as! Pipe).fileHandleForReading.readDataToEndOfFile()
     }
 

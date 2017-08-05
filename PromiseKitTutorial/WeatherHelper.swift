@@ -20,22 +20,21 @@
  * THE SOFTWARE.
  */
 
-
 import Foundation
 import PromiseKit
 
-fileprivate let appID = "<#Enter Your API Key from http://openweathermap.org/appid#>"
+fileprivate let appID = "650383560a9f3707ead9b051171af849"
 
 class WeatherHelper {
-  
+
   struct Weather {
     let tempInK: Double
     let iconName: String
     let text: String
     let name: String
-    
+
     init?(jsonDictionary: [String: Any]) {
-      
+
       guard let main =  jsonDictionary["main"] as? [String: Any],
         let tempInK = main["temp"] as? Double,
         let weather = (jsonDictionary["weather"] as? [[String: Any]])?.first,
@@ -47,34 +46,102 @@ class WeatherHelper {
       }
       self.tempInK = tempInK
       self.iconName = iconName
-      self.text = text      
+      self.text = text
       self.name = name
     }
   }
-  
-  func getWeatherTheOldFashionedWay(latitude: Double, longitude: Double, completion: @escaping (Weather?, Error?) -> ()) {
-    
+
+  func getWeatherTheOldFashionedWay(latitude: Double, longitude: Double, completion: @escaping (Weather?, Error?) -> Void) {
+
     assert(appID != "<#Enter Your API Key from http://openweathermap.org/appid#>", "You need to set your API key!")
-    
+
     let urlString = "http://api.openweathermap.org/data/2.5/weather?lat=\(latitude)&lon=\(longitude)&appid=\(appID)"
     let url = URL(string: urlString)!
     let request = URLRequest(url: url)
-    
+
     let session = URLSession.shared
-    let dataTask = session.dataTask(with: request) { data, response, error in
-      
+    let dataTask = session.dataTask(with: request) { data, _, error in
+
       guard let data = data,
-        let json = (try? JSONSerialization.jsonObject(with: data, options: [])) as? [String: Any],
-        let result = Weather(jsonDictionary: json) else {
+        let json = (try? JSONSerialization.jsonObject(with: data,
+                                                      options: [])) as? [String: Any],
+        let result = Weather(jsonDictionary: json)
+        else {
           completion(nil, error)
           return
       }
-      
+
       completion(result, nil)
     }
     dataTask.resume()
-  }  
-  
+  }
+
+    func getWeather(latitude: Double, longitude: Double) -> Promise<Weather> {
+        return Promise { fulfill, reject in
+            let urlString = "http://api.openweathermap.org/data/2.5/weather?lat=" +
+            "\(latitude)&lon=\(longitude)&appid=\(appID)"
+            let url = URL(string: urlString)!
+            let request = URLRequest(url: url)
+
+            let session = URLSession.shared
+
+            // 1
+            let dataPromise: URLDataPromise = session.dataTask(with: request)
+
+            // 2
+            _ = dataPromise.asDictionary().then { dictionary -> Void in
+
+                // 3
+                guard let result = Weather(jsonDictionary: dictionary as! [String : Any]) else {
+                    let error = NSError(domain: "PromiseKitTutorial", code: 0,
+                                        userInfo: [NSLocalizedDescriptionKey: "Unknown error"])
+                    reject(error)
+                    return
+                }
+
+                fulfill(result)
+
+                // 4
+                }.catch(execute: reject)
+        }
+    }
+
+    func getIcon(named iconName: String) -> Promise<UIImage> {
+
+        // 1
+        return wrap {
+            // 2
+            getFile(named: iconName, completion: $0)
+
+            } .then { image in
+                if image == nil {
+                    // 3
+                    return self.getIconFromNetwork(named: iconName)
+
+                } else {
+                    // 4
+                    return Promise(value: image!)
+                }
+        }
+    }
+
+    func getIconFromNetwork(named iconName: String) -> Promise<UIImage> {
+        let urlString = "http://openweathermap.org/img/w/\(iconName).png"
+        let url = URL(string: urlString)!
+        let request = URLRequest(url: url)
+
+        let session = URLSession.shared
+        let dataPromise: URLDataPromise = session.dataTask(with: request)
+        return dataPromise.then(on: DispatchQueue.global(qos: .background)) { data -> Promise<UIImage> in
+            return firstly { Void in
+                return wrap { self.saveFile(named: iconName, data: data, completion: $0)}
+                }.then { Void -> Promise<UIImage> in
+                    let image = UIImage(data: data)!
+                    return Promise(value: image)
+            }
+        }
+    }
+
   private func saveFile(named: String, data: Data, completion: @escaping (Error?) -> Void) {
     DispatchQueue.global(qos: .background).async {
       if let path = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent(named+".png") {
@@ -88,7 +155,7 @@ class WeatherHelper {
       }
     }
   }
-  
+
   private func getFile(named: String, completion: @escaping (UIImage?) -> Void) {
     DispatchQueue.global(qos: .background).async {
       var image: UIImage?
@@ -102,5 +169,5 @@ class WeatherHelper {
       }
     }
   }
-  
+
 }
