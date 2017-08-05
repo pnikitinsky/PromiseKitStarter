@@ -51,7 +51,9 @@ class WeatherHelper {
     }
   }
 
-  func getWeatherTheOldFashionedWay(latitude: Double, longitude: Double, completion: @escaping (Weather?, Error?) -> Void) {
+  func getWeatherTheOldFashionedWay(latitude: Double,
+                                    longitude: Double,
+                                    completion: @escaping (Weather?, Error?) -> Void) {
 
     assert(appID != "<#Enter Your API Key from http://openweathermap.org/appid#>", "You need to set your API key!")
 
@@ -92,7 +94,9 @@ class WeatherHelper {
             _ = dataPromise.asDictionary().then { dictionary -> Void in
 
                 // 3
-                guard let result = Weather(jsonDictionary: dictionary as! [String : Any]) else {
+
+                guard let dictionary = dictionary as? [String : Any],
+                    let result = Weather(jsonDictionary: dictionary) else {
                     let error = NSError(domain: "PromiseKitTutorial", code: 0,
                                         userInfo: [NSLocalizedDescriptionKey: "Unknown error"])
                     reject(error)
@@ -133,9 +137,9 @@ class WeatherHelper {
         let session = URLSession.shared
         let dataPromise: URLDataPromise = session.dataTask(with: request)
         return dataPromise.then(on: DispatchQueue.global(qos: .background)) { data -> Promise<UIImage> in
-            return firstly { Void in
+            return firstly { _ in
                 return wrap { self.saveFile(named: iconName, data: data, completion: $0)}
-                }.then { Void -> Promise<UIImage> in
+                }.then { _ -> Promise<UIImage> in
                     let image = UIImage(data: data)!
                     return Promise(value: image)
             }
@@ -144,7 +148,8 @@ class WeatherHelper {
 
   private func saveFile(named: String, data: Data, completion: @escaping (Error?) -> Void) {
     DispatchQueue.global(qos: .background).async {
-      if let path = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent(named+".png") {
+      if let path = FileManager.default.urls(for: .cachesDirectory,
+                                             in: .userDomainMask).first?.appendingPathComponent(named+".png") {
         do {
           try data.write(to: path)
           print("Saved image to: " + path.absoluteString)
@@ -159,7 +164,8 @@ class WeatherHelper {
   private func getFile(named: String, completion: @escaping (UIImage?) -> Void) {
     DispatchQueue.global(qos: .background).async {
       var image: UIImage?
-      if let path = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent(named+".png") {
+      if let path = FileManager.default.urls(for: .cachesDirectory,
+                                             in: .userDomainMask).first?.appendingPathComponent(named+".png") {
         if let data = try? Data(contentsOf: path) {
           image = UIImage(data: data)
         }

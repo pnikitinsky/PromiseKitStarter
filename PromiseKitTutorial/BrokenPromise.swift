@@ -23,9 +23,11 @@
 import Foundation
 import PromiseKit
 
-func BrokenPromise<T>(method: String = #function) -> Promise<T> {
+func brokenPromise<T>(method: String = #function) -> Promise<T> {
   return Promise<T> { _, reject in
-    let err = NSError(domain: "PromiseKitTutorial", code: 0, userInfo: [NSLocalizedDescriptionKey: "'\(method)' has not been implemented yet."])
+    let err = NSError(domain: "PromiseKitTutorial",
+                      code: 0,
+                      userInfo: [NSLocalizedDescriptionKey: "'\(method)' has not been implemented yet."])
     reject(err)
   }
 }

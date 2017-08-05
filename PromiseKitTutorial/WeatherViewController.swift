@@ -54,16 +54,20 @@ class WeatherViewController: UIViewController {
         _ = locationHelper.getLocation().then { placemark in
             self.handleLocation(placemark: placemark)
             }.catch { error in
+                guard let errorCast = error as? CLError else {
+                    return
+                }
                 self.tempLabel.text = "--"
                 self.placeLabel.text = "--"
                 switch error {
 
                 // 2
-                case is CLError where (error as! CLError).code == CLError.Code.denied:
+
+                case is CLError where (errorCast).code == CLError.Code.denied:
                     self.conditionLabel.text = "Enable Location Permissions in Settings"
                     self.conditionLabel.textColor = UIColor.white
                 default:
-                    self.conditionLabel.text = error.localizedDescription
+                    self.conditionLabel.text = errorCast.localizedDescription
                     self.conditionLabel.textColor = errorColor
                 }
         }
